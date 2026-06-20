@@ -1,7 +1,7 @@
-# 🚦 8-Way Traffic Intersection Simulator
+# 🚦 16-Way Traffic Intersection Simulator
 
 <p align="center">
-    <img src="assets/repo_logo.png" alt="8-Way Traffic Intersection Simulator Logo" width="400">
+    <img src="assets/repo_logo.png" alt="16-Way Traffic Intersection Simulator Logo" width="400">
 </p>
 
 <p align="center">
@@ -15,9 +15,9 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT">
 </p>
 
-**8-Way Traffic Intersection Simulator** is a high-fidelity 2D multi-agent traffic simulation application built in WPF utilizing .NET 10. It models a continuous 1x8 grid city avenue with 8 fully synchronized, independent traffic light intersection nodes and self-driving vehicle agents. 
+**16-Way Traffic Intersection Simulator** is a high-fidelity 2D multi-agent traffic simulation application built in WPF utilizing .NET 10. It models a **4x4 grid** of 16 fully synchronized, independently cycling traffic light intersection nodes with self-driving vehicle agents.
 
-The simulation features state-of-the-art 2D local-coordinate-projection collision avoidance, gridlock prevention ("Don't Block the Box"), and consensus-based deadlock resolution, guaranteeing that vehicles drive flawlessly without deadlocks, running red lights, going off-road, or colliding.
+The simulation features state-of-the-art 2D local-coordinate-projection collision avoidance, intersection-clearing priority (vehicles already inside an intersection have right-of-way to clear it), lane-keeping correction, gridlock prevention ("Don't Block the Box"), and consensus-based deadlock resolution — guaranteeing that vehicles drive smoothly without deadlocks, running red lights, going off-road, or colliding.
 
 ---
 
@@ -27,9 +27,12 @@ The simulation features state-of-the-art 2D local-coordinate-projection collisio
 
 ## Highlights
 
-- **Dynamic 8-Intersection Network:** Generates a continuous horizontal main road intersected by 8 vertical roads. The canvas extends to `3400px` in width and is wrapped in a horizontal `ScrollViewer` for smooth traversal.
+- **Dynamic 16-Intersection Network:** Generates a **4x4 grid** of intersections (4 rows × 4 columns, 400px spacing). The canvas is `1700×1700` pixels and scaled to fit the window via `Viewbox`.
 - **Advanced Coordinate Projection Collision Avoidance:** Translates the distance and angle vectors of surrounding obstacles directly into each vehicle's local frame. Vehicles detect cars ahead in their specific lane with extreme precision, adjusting speeds dynamically.
-- **Gridlock Prevention ("Don't Block the Box"):** Before crossing an intersection, vehicles count how many cars are on the target lane segment ahead. If a segment holds **6 or more cars**, the vehicle stays behind the stop line—regardless of light color—keeping the box clear.
+- **Intersection Clearing Priority:** Once a vehicle has crossed the stop line and entered an intersection, collision avoidance will not force it to stop — it maintains right-of-way to clear the box, preventing gridlock.
+- **Lane-Keeping Correction:** After every straight-line position update, vehicles gently nudge back toward the lane centerline if they drift more than 2px, keeping them perfectly on the road.
+- **Two-Phase Node Detection:** `GetActiveNode` first checks if the vehicle is near any node center (within 70px) for intersection logic; otherwise it finds the next node ahead. This prevents red-light running and ensures proper turn execution at every intersection.
+- **Gridlock Prevention ("Don't Block the Box"):** Before crossing an intersection, vehicles count how many cars are on the target lane segment ahead. If a segment holds **6 or more cars**, the vehicle stays behind the stop line — regardless of light color — keeping the box clear.
 - **Asymmetric Deadlock Resolution**: If two vehicles meet closely inside an intersection, a priority system based on vehicle heading geometry and a fallback ID-based tiebreaker ensures one vehicle yields while the other clears, preventing mutual lockups.
 - **Varying Speed Profiles:** Each vehicle spawns with a randomized `MaxSpeed` (ranging from 2.0 to 5.0 pixels/frame). Faster cars smoothly decelerate to match the speed of slower cars they catch up to.
 - **Visual Feedback Cues:** Features functional turn indicators (blinkers) that flash when a vehicle plans to turn, and visible windshield indicators showing the vehicle's direction of travel.
@@ -67,24 +70,6 @@ The simulation features state-of-the-art 2D local-coordinate-projection collisio
 
 ---
 
-## Project Structure
-
-```
-8-way-traffic-intersection/
-├── TrafficIntersection.csproj
-├── App.xaml / App.xaml.cs
-├── MainWindow.xaml / MainWindow.xaml.cs    # Render loop, roads drawing, UI elements
-├── assets/
-│   └── repo_logo.png                      # Repository brand asset
-├── Models/
-│   ├── TrafficLight.cs                    # Light states (Red, Yellow, Green)
-│   └── Vehicle.cs                         # Vehicle properties (Speed, MaxSpeed, Angle)
-└── Logic/
-    └── Intersection.cs                    # Core physics engine and traffic safety rules
-```
-
----
-
 ## How It Works
 
 ### 1. Local Coordinate Projection
@@ -116,7 +101,6 @@ Upon completing the turn, the vehicle snaps to the exact target lane coordinate 
 - **Stop Simulation:** Pauses the simulation and clears current vehicles.
 - **Restart:** Clears the simulation and restarts spawning immediately.
 - **Vehicle Count:** Displays a real-time counter of active vehicles on the map.
-- **Scroll Bar:** Allows horizontal scrolling to inspect all 8 intersections.
 
 ---
 
