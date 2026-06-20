@@ -36,7 +36,7 @@ namespace TrafficIntersection.Logic
             Vehicles = new ObservableCollection<Vehicle>();
 
             int id = 0;
-            for (int row = 0; row < 2; row++)
+            for (int row = 0; row < 4; row++)
             {
                 for (int col = 0; col < 4; col++)
                 {
@@ -103,7 +103,7 @@ namespace TrafficIntersection.Logic
                 }
             }
 
-            if (_random.Next(100) < 60) // Increased spawn rate for 8 intersections
+            if (_random.Next(100) < 45 && Vehicles.Count < 120) // Prevent oversaturation
             {
                 SpawnVehicle();
             }
@@ -155,7 +155,7 @@ namespace TrafficIntersection.Logic
             switch (direction)
             {
                 case "North":
-                    x = spawnNode.CenterX + 25; y = 1100; angle = 270;
+                    x = spawnNode.CenterX + 25; y = 1700; angle = 270;
                     break;
                 case "South":
                     x = spawnNode.CenterX - 25; y = -100; angle = 90;
@@ -164,7 +164,7 @@ namespace TrafficIntersection.Logic
                     x = -100; y = spawnNode.CenterY + 25; angle = 0;
                     break;
                 case "West":
-                    x = 1800; y = spawnNode.CenterY - 25; angle = 180;
+                    x = 1900; y = spawnNode.CenterY - 25; angle = 180;
                     break;
             }
 
@@ -195,10 +195,32 @@ namespace TrafficIntersection.Logic
 
         private TrafficNode? GetActiveNode(Vehicle v)
         {
-            if (v.Direction == "East") return Nodes.Where(n => Math.Abs(n.CenterY - v.Y) < 50 && n.CenterX - v.X > -70).OrderBy(n => n.CenterX).FirstOrDefault();
-            if (v.Direction == "West") return Nodes.Where(n => Math.Abs(n.CenterY - v.Y) < 50 && v.X - n.CenterX > -70).OrderByDescending(n => n.CenterX).FirstOrDefault();
-            if (v.Direction == "South") return Nodes.Where(n => Math.Abs(n.CenterX - v.X) < 50 && n.CenterY - v.Y > -70).OrderBy(n => n.CenterY).FirstOrDefault();
-            if (v.Direction == "North") return Nodes.Where(n => Math.Abs(n.CenterX - v.X) < 50 && v.Y - n.CenterY > -70).OrderByDescending(n => n.CenterY).FirstOrDefault();
+            // Phase 1: if the car is near ANY node center (within 70px), use that node
+            // This catches cars at/inside intersections for turn logic and light checks
+            var sameRow = Nodes.Where(n => v.Direction is "East" or "West"
+                ? Math.Abs(n.CenterY - v.Y) < 50
+                : Math.Abs(n.CenterX - v.X) < 50);
+            var near = sameRow.Where(n => v.Direction is "East" or "West"
+                ? Math.Abs(n.CenterX - v.X) < 70
+                : Math.Abs(n.CenterY - v.Y) < 70)
+                .OrderBy(n => v.Direction switch
+                {
+                    "East" => Math.Abs(n.CenterX - v.X),
+                    "West" => Math.Abs(n.CenterX - v.X),
+                    "South" => Math.Abs(n.CenterY - v.Y),
+                    "North" => Math.Abs(n.CenterY - v.Y),
+                    _ => 0
+                }).FirstOrDefault();
+            if (near != null) return near;
+
+            // Phase 2: not near any node — find the next node ahead along the direction of travel
+            switch (v.Direction)
+            {
+                case "East":  return Nodes.Where(n => Math.Abs(n.CenterY - v.Y) < 50 && n.CenterX > v.X).OrderBy(n => n.CenterX).FirstOrDefault();
+                case "West":  return Nodes.Where(n => Math.Abs(n.CenterY - v.Y) < 50 && n.CenterX < v.X).OrderByDescending(n => n.CenterX).FirstOrDefault();
+                case "South": return Nodes.Where(n => Math.Abs(n.CenterX - v.X) < 50 && n.CenterY > v.Y).OrderBy(n => n.CenterY).FirstOrDefault();
+                case "North": return Nodes.Where(n => Math.Abs(n.CenterX - v.X) < 50 && n.CenterY < v.Y).OrderByDescending(n => n.CenterY).FirstOrDefault();
+            }
             return null;
         }
 
@@ -362,7 +384,12 @@ namespace TrafficIntersection.Logic
 
                     if (vehicleAhead != null)
                     {
-                        if (minDistance < 38) canMove = false; // Too close, stop entirely
+                        if (minDistance < 38)
+                        {
+                            // Intersection clearing: if already inside intersection, don't stop — keep moving to clear it
+                            if (!isInsideIntersection) canMove = false;
+                            else vehicle.Speed = Math.Min(vehicle.Speed, vehicleAhead.Speed * 0.7);
+                        }
                         else vehicle.Speed = Math.Min(vehicle.Speed, vehicleAhead.Speed * 0.9); // Slow down
                     }
                     else
@@ -428,9 +455,34 @@ namespace TrafficIntersection.Logic
                     double rad = vehicle.Angle * Math.PI / 180.0;
                     vehicle.X += Math.Cos(rad) * vehicle.Speed;
                     vehicle.Y += Math.Sin(rad) * vehicle.Speed;
+
+                    // Lane-keeping: gently nudge vehicle back toward lane centerline
+                    if (!isInsideIntersection && vehicle.IntendedTurn == TurnDirection.Straight)
+                    {
+                        var nearestNode = GetActiveNode(vehicle);
+                        if (nearestNode != null)
+                        {
+                            double targetLateral = 0;
+                            if (vehicle.Direction == "North") targetLateral = nearestNode.CenterX + 25;
+                            else if (vehicle.Direction == "South") targetLateral = nearestNode.CenterX - 25;
+                            else if (vehicle.Direction == "East") targetLateral = nearestNode.CenterY + 25;
+                            else if (vehicle.Direction == "West") targetLateral = nearestNode.CenterY - 25;
+
+                            if (vehicle.Direction == "North" || vehicle.Direction == "South")
+                            {
+                                double drift = vehicle.X - targetLateral;
+                                if (Math.Abs(drift) > 2) vehicle.X -= drift * 0.05;
+                            }
+                            else
+                            {
+                                double drift = vehicle.Y - targetLateral;
+                                if (Math.Abs(drift) > 2) vehicle.Y -= drift * 0.05;
+                            }
+                        }
+                    }
                 }
 
-                if (vehicle.X < -200 || vehicle.X > 3400 || vehicle.Y < -200 || vehicle.Y > 1000)
+                if (vehicle.X < -200 || vehicle.X > 3400 || vehicle.Y < -200 || vehicle.Y > 1800)
                 {
                     vehiclesToRemove.Add(vehicle);
                 }

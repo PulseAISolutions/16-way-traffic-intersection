@@ -1,8 +1,8 @@
 <Window x:Class="TrafficIntersection.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="8-Intersection Traffic Simulator" 
-        Height="700" Width="1200"
+        Title="16-Intersection Traffic Simulator" 
+        Height="1000" Width="1400"
         WindowStartupLocation="CenterScreen"
         Background="#EAEAEA" FontFamily="Segoe UI, Inter, Arial, sans-serif">
     <Grid>
@@ -13,8 +13,8 @@
 
         <!-- Main Area for Intersections -->
         <Viewbox Grid.Column="0" Stretch="Uniform">
-            <!-- Canvas is 1700x900 to fit the 4x2 grid -->
-            <Canvas Name="IntersectionCanvas" Width="1700" Height="900" Background="#D5CDBF" MouseDown="Canvas_MouseDown" ClipToBounds="True">
+            <!-- Canvas is 1700x1700 to fit the 4x4 grid -->
+            <Canvas Name="IntersectionCanvas" Width="1700" Height="1700" Background="#D5CDBF" MouseDown="Canvas_MouseDown" ClipToBounds="True">
                 <!-- Roads will be drawn programmatically in C# -->
             </Canvas>
         </Viewbox>

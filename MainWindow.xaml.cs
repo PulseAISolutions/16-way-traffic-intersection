@@ -26,8 +26,8 @@ namespace TrafficIntersection
 
         private void DrawRoads()
         {
-            // Draw 2 Horizontal Roads
-            for (int row = 0; row < 2; row++)
+            // Draw 4 Horizontal Roads
+            for (int row = 0; row < 4; row++)
             {
                 double centerY = 250 + row * 400;
                 var hRoad = new Rectangle { Width = 1800, Height = 100, Fill = new SolidColorBrush(Color.FromRgb(44, 44, 44)) };
@@ -46,16 +46,16 @@ namespace TrafficIntersection
             for (int col = 0; col < 4; col++)
             {
                 double centerX = 250 + col * 400;
-                var vRoad = new Rectangle { Width = 100, Height = 1000, Fill = new SolidColorBrush(Color.FromRgb(44, 44, 44)) };
+                var vRoad = new Rectangle { Width = 100, Height = 1700, Fill = new SolidColorBrush(Color.FromRgb(44, 44, 44)) };
                 Canvas.SetLeft(vRoad, centerX - 50); Canvas.SetTop(vRoad, -50);
                 IntersectionCanvas.Children.Add(vRoad);
 
                 // center dashed line
-                IntersectionCanvas.Children.Add(new Line { X1 = centerX, Y1 = -50, X2 = centerX, Y2 = 950, Stroke = Brushes.White, StrokeThickness = 2, StrokeDashArray = new DoubleCollection { 4, 4 } });
+                IntersectionCanvas.Children.Add(new Line { X1 = centerX, Y1 = -50, X2 = centerX, Y2 = 1650, Stroke = Brushes.White, StrokeThickness = 2, StrokeDashArray = new DoubleCollection { 4, 4 } });
 
                 // Edge lines
-                IntersectionCanvas.Children.Add(new Line { X1 = centerX - 50, Y1 = -50, X2 = centerX - 50, Y2 = 950, Stroke = Brushes.White, StrokeThickness = 2 });
-                IntersectionCanvas.Children.Add(new Line { X1 = centerX + 50, Y1 = -50, X2 = centerX + 50, Y2 = 950, Stroke = Brushes.White, StrokeThickness = 2 });
+                IntersectionCanvas.Children.Add(new Line { X1 = centerX - 50, Y1 = -50, X2 = centerX - 50, Y2 = 1650, Stroke = Brushes.White, StrokeThickness = 2 });
+                IntersectionCanvas.Children.Add(new Line { X1 = centerX + 50, Y1 = -50, X2 = centerX + 50, Y2 = 1650, Stroke = Brushes.White, StrokeThickness = 2 });
             }
 
             // Draw intersections (to cover the crossed lines) and lights
