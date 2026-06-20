@@ -49,8 +49,8 @@ The simulation features state-of-the-art 2D local-coordinate-projection collisio
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/PulseAISolutions/8-way-traffic-intersection.git
-   cd 8-way-traffic-intersection
+   git clone https://github.com/PulseAISolutions/16-way-traffic-intersection.git
+   cd 16-way-traffic-intersection
    ```
 
 2. **Restore dependencies:**
